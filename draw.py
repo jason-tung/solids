@@ -5,7 +5,7 @@ from gmath import *
 
 def scanline_convert(polygons, i, screen, zbuffer):
     step = 0.01
-    color = [3 * i % 150 + 50, 33 * i % 150 + 80, 333 * i % 150 + 116]
+    color = [33333 * i % 170 + 50, 33333 * i % 150 + 40, 33333 * i % 150 + 50]
 
     cornish_hens = [polygons[i], polygons[i + 1], polygons[i + 2]]
     cornish_hens.sort(key=lambda x: x[1])
@@ -219,23 +219,22 @@ def add_circle(points, cx, cy, cz, r, step):
         y0 = y1
         i += 1
 
-
 def add_curve(points, x0, y0, x1, y1, x2, y2, x3, y3, step, curve_type):
-    xcoefs = generate_curve_coefs(x0, x1, x2, x3, curve_type)[0]
-    ycoefs = generate_curve_coefs(y0, y1, y2, y3, curve_type)[0]
-
-    i = 1
-    while i <= step:
-        t = float(i) / step
-        x = t * (t * (xcoefs[0] * t + xcoefs[1]) + xcoefs[2]) + xcoefs[3]
-        y = t * (t * (ycoefs[0] * t + ycoefs[1]) + ycoefs[2]) + ycoefs[3]
-        # x = xcoefs[0] * t*t*t + xcoefs[1] * t*t + xcoefs[2] * t + xcoefs[3]
-        # y = ycoefs[0] * t*t*t + ycoefs[1] * t*t + ycoefs[2] * t + ycoefs[3]
-
-        add_edge(points, x0, y0, 0, x, y, 0)
-        x0 = x
-        y0 = y
-        i += 1
+    stepper = step
+    xc = generate_curve_coefs(x0, x1, x2, x3, curve_type)
+    yc = generate_curve_coefs(y0, y1, y2, y3, curve_type)
+    while stepper <= step + 1:
+        nx0 = 0
+        ny0 = 0
+        nx1 = 0
+        ny1 = 0
+        for x in range(4):
+            nx0 += xc[0][x] * stepper ** (3 - x)
+            ny0 += yc[0][x] * stepper ** (3 - x)
+            nx1 += xc[0][x] * (stepper - step) ** (3 - x)
+            ny1 += yc[0][x] * (stepper - step) ** (3 - x)
+        add_edge(points, nx0, ny0, 0, nx1, ny1, 0)
+        stepper += step
 
 
 def draw_lines(matrix, screen, zbuffer, color):
